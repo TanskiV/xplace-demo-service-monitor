@@ -6,7 +6,20 @@ import time
 from dataclasses import dataclass
 from urllib.parse import urlparse
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
+
+
+class _RejectRedirects(HTTPRedirectHandler):
+    """Do not follow a health URL into an unvalidated destination."""
+
+    def _reject(self, *_args, **_kwargs):
+        raise ValueError("Redirects are disabled; validate the final endpoint explicitly")
+
+    http_error_301 = _reject
+    http_error_302 = _reject
+    http_error_303 = _reject
+    http_error_307 = _reject
+    http_error_308 = _reject
 
 
 def _is_private_host(hostname: str) -> bool:
@@ -72,7 +85,7 @@ def check_service(
     try:
         validate_public_url(url, allow_private_hosts=allow_private_hosts)
         request = Request(url, headers={"User-Agent": "service-monitor-demo/0.1"})
-        with urlopen(request, timeout=timeout) as response:
+        with build_opener(_RejectRedirects).open(request, timeout=timeout) as response:
             latency_ms = round((time.perf_counter() - started) * 1000, 2)
             return CheckResult(name, url, 200 <= response.status < 400, response.status, latency_ms, None)
     except HTTPError as exc:

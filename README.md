@@ -8,7 +8,7 @@ a JSON report with status, latency, timestamp and an overall pass/fail result.
 It is designed for bounded diagnostics: no credentials, no alert delivery and
 no production endpoints are included. Private, loopback, link-local, metadata
 and non-HTTP(S) targets are rejected by default; local test servers use an
-explicit test-only opt-in.
+explicit test-only opt-in. Redirects are not followed.
 
 This is a demonstration/reference project, not a client monitoring system.
 

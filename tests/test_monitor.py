@@ -7,6 +7,11 @@ from service_monitor.monitor import check_service
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):  # noqa: N802
+        if self.path == "/redirect":
+            self.send_response(302)
+            self.send_header("Location", "/health")
+            self.end_headers()
+            return
         status = 200 if self.path == "/health" else 503
         self.send_response(status)
         self.end_headers()
@@ -48,6 +53,11 @@ class MonitorTests(unittest.TestCase):
         result = check_service("demo", self.base_url + "/health")
         self.assertFalse(result.ok)
         self.assertIn("Private", result.error or "")
+
+    def test_redirects_are_rejected(self):
+        result = check_service("demo", self.base_url + "/redirect", allow_private_hosts=True)
+        self.assertFalse(result.ok)
+        self.assertIn("Redirects", result.error or "")
 
 
 if __name__ == "__main__":
