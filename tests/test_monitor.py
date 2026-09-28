@@ -29,20 +29,25 @@ class MonitorTests(unittest.TestCase):
         cls.thread.join(timeout=2)
 
     def test_healthy_service(self):
-        result = check_service("demo", self.base_url + "/health")
+        result = check_service("demo", self.base_url + "/health", allow_private_hosts=True)
         self.assertTrue(result.ok)
         self.assertEqual(result.status, 200)
         self.assertIsNotNone(result.latency_ms)
 
     def test_unhealthy_status(self):
-        result = check_service("demo", self.base_url + "/broken")
+        result = check_service("demo", self.base_url + "/broken", allow_private_hosts=True)
         self.assertFalse(result.ok)
         self.assertEqual(result.status, 503)
 
     def test_unavailable_service_is_fail_closed(self):
-        result = check_service("demo", "http://127.0.0.1:1/nope", timeout=0.1)
+        result = check_service("demo", "http://127.0.0.1:1/nope", timeout=0.1, allow_private_hosts=True)
         self.assertFalse(result.ok)
         self.assertIsNotNone(result.error)
+
+    def test_public_monitor_rejects_local_target(self):
+        result = check_service("demo", self.base_url + "/health")
+        self.assertFalse(result.ok)
+        self.assertIn("Private", result.error or "")
 
 
 if __name__ == "__main__":

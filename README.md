@@ -6,7 +6,9 @@ configuration, requires no credentials and sends no alerts.
 Small reference utility that checks a list of HTTP health endpoints and writes
 a JSON report with status, latency, timestamp and an overall pass/fail result.
 It is designed for bounded diagnostics: no credentials, no alert delivery and
-no production endpoints are included.
+no production endpoints are included. Private, loopback, link-local, metadata
+and non-HTTP(S) targets are rejected by default; local test servers use an
+explicit test-only opt-in.
 
 This is a demonstration/reference project, not a client monitoring system.
 
@@ -20,7 +22,8 @@ python -m service_monitor.cli examples/services.json --output build/report.json
 ```
 
 The sample uses `example.test` placeholders and is intentionally not expected
-to reach a real service. Replace the URL in a local copy for a real diagnostic.
+to reach a real service. A permitted public endpoint may be supplied for a
+local diagnostic after reviewing its terms and scope.
 
 ## Test
 
